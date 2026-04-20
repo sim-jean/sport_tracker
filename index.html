@@ -254,13 +254,6 @@
 
 <!-- DASHBOARD -->
 <div id="s-dashboard" class="screen">
-  <div class="obj-header">
-    <div class="obj-title">Objectif poids</div>
-    <div class="obj-nums">113 → 98 kg</div>
-  </div>
-  <div class="obj-bar"><div class="obj-bar-fill" style="width:0%"></div></div>
-  <div style="font-size:12px;color:var(--hint);margin-top:-10px;margin-bottom:16px">15 kg à perdre · ~4–6 mois avec constance</div>
-
   <div class="stat-grid">
     <div class="stat-box"><div class="stat-label">Kcal aujourd'hui</div><div class="stat-val" id="d-kcal">0</div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 2200 objectif</div></div>
     <div class="stat-box"><div class="stat-label">Protéines</div><div class="stat-val" id="d-prot">0 <span class="stat-unit">g</span></div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 150g objectif</div></div>
@@ -281,8 +274,14 @@
 
   <div class="card">
     <div class="card-title">Coach IA</div>
-    <div class="coach-txt" id="coach-txt">Commence à logger tes repas et séances pour recevoir un bilan personnalisé.</div>
-    <button class="btn-primary" id="btn-coach" onclick="getCoach()">Demander un bilan</button>
+    <div class="coach-txt" id="coach-txt">Choisis une option pour recevoir un conseil personnalisé.</div>
+    <div class="pills" style="margin-bottom:12px">
+      <button class="pill" onclick="askCoach('bilan')">📊 Bilan du jour</button>
+      <button class="pill" onclick="askCoach('recette')">🍽 Recette</button>
+      <button class="pill" onclick="askCoach('activite')">⚡ Activité</button>
+      <button class="pill" onclick="askCoach('motivation')">💬 Motivation</button>
+    </div>
+    <div class="status" id="st-coach" style="margin-bottom:8px"></div>
   </div>
 </div>
 
@@ -825,15 +824,34 @@ function updateDashboard() {
   if(typeof Chart!=='undefined') buildCalChart();
 }
 
-async function getCoach() {
-  const btn=document.getElementById('btn-coach'),txt=document.getElementById('coach-txt');
-  btn.disabled=true; txt.textContent='Analyse en cours...'; updateDashboard();
-  const t=todayFood(), kcal=Math.round(t.reduce((s,r)=>s+(r.calories||0),0)), prot=Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
+async function askCoach(mode) {
+  const txt=document.getElementById('coach-txt'), st=document.getElementById('st-coach');
+  const pills=document.querySelectorAll('.card .pills .pill');
+  pills.forEach(p=>p.disabled=true);
+  st.textContent=''; txt.textContent='';
+
+  const t=todayFood();
+  const kcal=Math.round(t.reduce((s,r)=>s+(r.calories||0),0));
+  const prot=Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
+  const left=Math.max(0,2200-kcal);
+  const context=`Profil: homme actif, programme natation 3x/sem + KB 2x/sem + renfo 1x/sem. Objectif: perte de poids + musculation. Budget: 2200 kcal/j, 150g prot/j.\nAujourd'hui: ${kcal} kcal mangées, ${prot}g protéines, ${left} kcal restantes, ${trainLog.filter(r=>new Date(r.ts).toDateString()===new Date().toDateString()).length} séance(s).\nRepas: ${t.map(r=>r.summary).join(' / ')||'aucun'}.`;
+
+  const prompts = {
+    bilan:     `Coach nutrition/fitness. Donne un bilan du jour en 3-4 phrases, direct et bienveillant, sans bullet points.\n${context}`,
+    recette:   `Nutritionniste. Propose UNE recette simple et rapide (≤20 min) qui rentre dans les ${left} kcal restantes aujourd'hui et maximise les protéines. Donne le nom, les ingrédients clés, la préparation en 2-3 phrases, et les macros estimées.\n${context}`,
+    activite:  `Coach fitness. Propose UNE activité ou séance courte (15-30 min) adaptée à aujourd'hui, en tenant compte des séances déjà faites. Décris ce qu'il faut faire concrètement en 3-4 phrases.\n${context}`,
+    motivation:`Coach bienveillant. Envoie un message de motivation court et percutant (2-3 phrases max) basé sur la journée de l'utilisateur. Sois humain, pas générique.\n${context}`
+  };
+
+  st.textContent = {bilan:'Analyse...', recette:'Recherche une recette...', activite:'Prépare une activité...', motivation:'...'}[mode];
   try {
-    const a=await callClaude(`Coach nutrition/fitness. Bilan court et actionnable en 3-4 phrases max, texte fluide sans bullet points.\nProfil: 113kg, objectif -15kg + musculation. Programme: KB 2x/sem, natation 3x/sem, renfo 1x/sem. Limite: 2200 kcal/j, 150g prot/j.\nAujourd'hui: ${kcal} kcal, ${prot}g protéines, ${trainLog.length} séance(s).\nRepas: ${t.map(r=>r.summary).join(' / ')||'aucun'}. Entraînements récents: ${trainLog.slice(-3).map(r=>r.summary).join(' / ')||'aucun'}.\nSois direct, bienveillant, précis.`);
-    txt.textContent=a;
-  } catch(e){txt.textContent='Erreur: '+e.message;}
-  btn.disabled=false;
+    txt.textContent = await callClaude(prompts[mode]);
+  } catch(e) {
+    txt.textContent = 'Erreur: '+e.message;
+    txt.style.color = 'var(--red)';
+  }
+  st.textContent='';
+  pills.forEach(p=>p.disabled=false);
 }
 
 // ── PWA ───────────────────────────────────────────────────────────────────────
