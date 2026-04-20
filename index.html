@@ -160,16 +160,6 @@
 
 <!-- NUTRITION -->
 <div id="s-nutrition" class="screen on">
-  <div id="setup-section" class="setup-card">
-    <div class="card-title">Clé API Anthropic</div>
-    <input type="password" id="api-input" placeholder="sk-ant-api03-..." />
-    <button class="btn-primary" onclick="saveKey()" style="width:100%">Valider la clé</button>
-  </div>
-  <div class="key-status-bar" id="key-status">
-    <span class="key-status-text">✓ Clé API : <span id="key-preview"></span></span>
-    <button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="showKeyInput()">Modifier</button>
-  </div>
-
   <div class="rings-wrap">
     <svg width="90" height="90" viewBox="0 0 90 90" style="flex-shrink:0">
       <circle cx="45" cy="45" r="38" fill="none" stroke="#2a2a2a" stroke-width="9"/>
@@ -383,7 +373,6 @@ const DEFAULT_TEMPLATES = [
   { id:'swim', name:'Natation 1km', desc:'Crawl 1km · ~35 min', type:'natation', duree_min:35, intensite:'modéré', muscles:['dos','épaules','triceps','core'], calories_brulees:560 }
 ];
 
-let apiKey = localStorage.getItem('track_api_key') || '';
 let currentMeal = 'petit-déjeuner';
 let currentIntensity = 'modéré';
 let editingId = null;
@@ -431,30 +420,8 @@ const todayStr = new Date().toISOString().slice(0,10);
 document.getElementById('food-date').value = todayStr;
 document.getElementById('train-date').value = todayStr;
 
-if (apiKey) {
-  document.getElementById('setup-section').style.display = 'none';
-  showKeyStatus();
-}
 document.getElementById('date-str').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
 renderTemplates(); renderFoodLog(); renderTrainLog(); updateNutrition(); updateTraining();
-
-// ── API key ───────────────────────────────────────────────────────────────────
-function showKeyStatus() {
-  document.getElementById('key-preview').textContent = apiKey.slice(0,16) + '••••••';
-  document.getElementById('key-status').classList.add('on');
-}
-function showKeyInput() {
-  document.getElementById('key-status').classList.remove('on');
-  document.getElementById('api-input').value = apiKey;
-  document.getElementById('setup-section').style.display = 'block';
-}
-function saveKey() {
-  const k = document.getElementById('api-input').value.trim();
-  if (!k.startsWith('sk-')) { alert('Clé invalide'); return; }
-  apiKey = k; localStorage.setItem('track_api_key', k);
-  document.getElementById('setup-section').style.display = 'none';
-  showKeyStatus();
-}
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function todayFood() { const d=new Date().toDateString(); return foodLog.filter(r=>new Date(r.ts).toDateString()===d); }
@@ -531,10 +498,14 @@ function deleteTpl() {
 
 // ── Claude API ────────────────────────────────────────────────────────────────
 async function callClaude(prompt) {
-  if(!apiKey) throw new Error('Clé API non configurée');
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,temperature:0,messages:[{role:'user',content:prompt}]})});
-  const d=await r.json(); if(d.error) throw new Error(d.error.message);
-  return d.content[0].text;
+  const r = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error);
+  return d.text;
 }
 
 // ── Nutrition ─────────────────────────────────────────────────────────────────
