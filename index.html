@@ -151,8 +151,8 @@
     <div class="card-title">Clé API Anthropic</div>
     <input type="password" id="api-input" placeholder="sk-ant-api03-..." />
     <button class="btn-primary" onclick="saveKey()" style="width:100%">Valider la clé</button>
-    <div class="key-saved" id="key-saved">Clé configurée.</div>
   </div>
+  <div class="key-saved" id="key-saved" style="padding:0 0 12px">Clé API configurée.</div>
 
   <div class="rings-wrap">
     <svg width="90" height="90" viewBox="0 0 90 90" style="flex-shrink:0">
@@ -307,7 +307,12 @@ let trainLog = JSON.parse(localStorage.getItem('track_train') || '[]');
 let templates = JSON.parse(localStorage.getItem('track_tpl') || 'null');
 if (!templates) { templates = DEFAULT_TEMPLATES; localStorage.setItem('track_tpl', JSON.stringify(templates)); }
 
-if (apiKey) { document.getElementById('setup-section').style.display='none'; document.getElementById('key-saved').style.display='block'; }
+if (apiKey) {
+  document.getElementById('setup-section').style.display='none';
+  document.getElementById('key-saved').style.display='block';
+} else {
+  document.getElementById('key-saved').style.display='none';
+}
 document.getElementById('date-str').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
 renderTemplates(); renderFoodLog(); renderTrainLog(); updateNutrition(); updateTraining();
 
@@ -417,7 +422,7 @@ function showFoodResult(j) {
 async function saveFood(j) {
   const st=document.getElementById('st-food'); st.textContent='Enregistrement...';
   try {
-    await fetch(GAS,{method:'POST',body:JSON.stringify({type:'nutrition',data:{...j,meal:currentMeal}})});
+    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'nutrition',data:{...j,meal:currentMeal}})});
     foodLog.push({...j,meal:currentMeal,ts:new Date().toISOString()});
     localStorage.setItem('track_food',JSON.stringify(foodLog));
     updateNutrition(); renderFoodLog();
@@ -474,7 +479,7 @@ function showTrainResult(j) {
 async function saveTrain(j) {
   const st=document.getElementById('st-train'); st.textContent='Enregistrement...';
   try {
-    await fetch(GAS,{method:'POST',body:JSON.stringify({type:'training',data:j})});
+    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'training',data:j})});
     trainLog.push({...j,ts:new Date().toISOString()});
     localStorage.setItem('track_train',JSON.stringify(trainLog));
     updateTraining(); renderTrainLog();
@@ -640,6 +645,7 @@ if ('serviceWorker' in navigator) {
 
 syncFromSheets();
 
+function updateDashboard() {
   const t=todayFood();
   const kcal=Math.round(t.reduce((s,r)=>s+(r.calories||0),0)), prot=Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
   const burned=Math.round(trainLog.reduce((s,r)=>s+(r.calories_brulees||0),0));
