@@ -1,4 +1,4 @@
-const CACHE = 'track-v1';
+const CACHE = 'track-v2';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {

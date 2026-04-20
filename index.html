@@ -8,7 +8,6 @@
 <title>TRACK</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0c0c0c">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Track.">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -51,9 +50,10 @@
   .pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--muted); font-family: 'Barlow', sans-serif; font-size: 13px; cursor: pointer; transition: all .15s; }
   .pill.on { background: var(--accent); border-color: var(--accent); color: #0c0c0c; font-weight: 600; }
 
-  textarea, input[type=text], input[type=password], input[type=number] {
+  textarea, input[type=text], input[type=password], input[type=number], input[type=date] {
     width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
     color: var(--text); font-family: 'Barlow', sans-serif; font-size: 15px; padding: 12px 14px; resize: none; outline: none; transition: border-color .2s;
+    color-scheme: dark;
   }
   textarea:focus, input:focus { border-color: var(--accent); }
   textarea::placeholder, input::placeholder { color: var(--hint); }
@@ -98,14 +98,27 @@
   .divider-line { flex: 1; height: 1px; background: var(--border); }
   .divider-txt { font-size: 11px; color: var(--hint); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
 
-  .log-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .log-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); gap: 8px; }
   .log-item:last-child { border-bottom: none; }
+  .log-item-main { flex: 1; min-width: 0; }
   .log-name { font-size: 14px; font-weight: 600; }
-  .log-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .log-right { text-align: right; flex-shrink: 0; margin-left: 12px; }
+  .log-sub { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .log-right { text-align: right; flex-shrink: 0; }
   .log-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; }
   .log-sec { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .log-edit-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--hint); width: 28px; height: 28px; font-size: 13px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .log-edit-btn:hover { border-color: var(--muted); color: var(--text); }
   .empty { text-align: center; padding: 24px; color: var(--hint); font-size: 14px; }
+
+  .day-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .day-nav-btn { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); width: 32px; height: 32px; cursor: pointer; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+  .day-nav-btn:hover:not(:disabled) { border-color: var(--muted); color: var(--text); }
+  .day-nav-btn:disabled { opacity: .3; cursor: default; }
+  .day-nav-label { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+  .key-status-bar { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 10px; }
+  .key-status-bar.on { display: flex; }
+  .key-status-text { font-size: 12px; color: var(--teal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
 
   .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .stat-box { background: var(--surface); border-radius: 14px; padding: 16px; }
@@ -116,7 +129,6 @@
   .setup-card { background: var(--surface); border: 1px solid var(--accent-dim); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
   .setup-card .card-title { color: var(--accent); }
   .setup-card input { margin-bottom: 10px; }
-  .key-saved { font-size: 13px; color: var(--teal); display: none; margin-top: 4px; }
 
   .obj-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
   .obj-title { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
@@ -128,6 +140,7 @@
   @media (prefers-color-scheme: light) {
     :root { --bg: #f5f5f0; --surface: #fff; --surface2: #f0f0eb; --border: #e0e0d8; --text: #0c0c0c; --muted: #666; --hint: #aaa; }
     .btn-primary, .pill.on { color: #0c0c0c; }
+    textarea, input[type=text], input[type=password], input[type=number], input[type=date] { color-scheme: light; }
   }
 </style>
 </head>
@@ -152,7 +165,10 @@
     <input type="password" id="api-input" placeholder="sk-ant-api03-..." />
     <button class="btn-primary" onclick="saveKey()" style="width:100%">Valider la clé</button>
   </div>
-  <div class="key-saved" id="key-saved" style="padding:0 0 12px">Clé API configurée.</div>
+  <div class="key-status-bar" id="key-status">
+    <span class="key-status-text">✓ Clé API : <span id="key-preview"></span></span>
+    <button class="btn-ghost" style="padding:6px 12px;font-size:12px" onclick="showKeyInput()">Modifier</button>
+  </div>
 
   <div class="rings-wrap">
     <svg width="90" height="90" viewBox="0 0 90 90" style="flex-shrink:0">
@@ -181,6 +197,10 @@
       <button class="pill" onclick="selectMeal(this,'dîner')">Dîner</button>
       <button class="pill" onclick="selectMeal(this,'collation')">Collation</button>
     </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div class="form-label">Date</div>
+      <input type="date" id="food-date" />
+    </div>
     <textarea id="food-input" rows="3" placeholder="Ex: poulet grillé 180g, riz basmati 100g, brocolis vapeur, filet d'huile d'olive"></textarea>
     <div class="btn-row">
       <button class="btn-primary" id="btn-food" onclick="parseFood()">Analyser</button>
@@ -190,7 +210,11 @@
   </div>
 
   <div class="card">
-    <div class="card-title">Repas du jour</div>
+    <div class="day-nav">
+      <button class="day-nav-btn" onclick="prevFoodDay()">‹</button>
+      <span class="day-nav-label" id="food-day-label">Aujourd'hui</span>
+      <button class="day-nav-btn" id="food-day-next" onclick="nextFoodDay()" disabled>›</button>
+    </div>
     <div id="food-log"><div class="empty">Aucun repas enregistré</div></div>
   </div>
 </div>
@@ -216,6 +240,10 @@
       <div class="divider-txt">ou décrire librement</div>
       <div class="divider-line"></div>
     </div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div class="form-label">Date</div>
+      <input type="date" id="train-date" />
+    </div>
     <textarea id="train-input" rows="3" placeholder="Ex: séance renfo coach 60min, full body, gainage..."></textarea>
     <div class="btn-row">
       <button class="btn-primary" id="btn-train" onclick="parseTrain()">Analyser avec IA</button>
@@ -225,7 +253,11 @@
   </div>
 
   <div class="card">
-    <div class="card-title">Historique</div>
+    <div class="day-nav">
+      <button class="day-nav-btn" onclick="prevTrainDay()">‹</button>
+      <span class="day-nav-label" id="train-day-label">Aujourd'hui</span>
+      <button class="day-nav-btn" id="train-day-next" onclick="nextTrainDay()" disabled>›</button>
+    </div>
     <div id="train-log"><div class="empty">Aucune séance enregistrée</div></div>
   </div>
 </div>
@@ -264,7 +296,7 @@
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL: Template -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-title" id="modal-title">Nouveau template</div>
@@ -290,6 +322,59 @@
   </div>
 </div>
 
+<!-- MODAL: Edit food -->
+<div class="modal-overlay" id="edit-food-overlay" onclick="if(event.target.id==='edit-food-overlay')closeEditFood()">
+  <div class="modal">
+    <div class="modal-title">Modifier le repas</div>
+    <div class="form-row"><div class="form-label">Date</div><input type="date" id="ef-date" /></div>
+    <div class="form-row">
+      <div class="form-label">Repas</div>
+      <div class="pills" id="ef-meal-pills" style="margin-bottom:0">
+        <button class="pill" data-meal="petit-déjeuner" onclick="selEfMeal(this,'petit-déjeuner')">Petit-déj</button>
+        <button class="pill" data-meal="déjeuner" onclick="selEfMeal(this,'déjeuner')">Déjeuner</button>
+        <button class="pill" data-meal="dîner" onclick="selEfMeal(this,'dîner')">Dîner</button>
+        <button class="pill" data-meal="collation" onclick="selEfMeal(this,'collation')">Collation</button>
+      </div>
+    </div>
+    <div class="form-row"><div class="form-label">Description</div><input type="text" id="ef-summary" /></div>
+    <div class="form-row"><div class="form-label">Calories</div><input type="number" id="ef-kcal" /></div>
+    <div class="form-row"><div class="form-label">Protéines (g)</div><input type="number" id="ef-prot" /></div>
+    <div class="form-row"><div class="form-label">Lipides (g)</div><input type="number" id="ef-lip" /></div>
+    <div class="form-row"><div class="form-label">Glucides (g)</div><input type="number" id="ef-gluc" /></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveEditFood()">Enregistrer</button>
+      <button class="btn-ghost" onclick="closeEditFood()">Annuler</button>
+      <button class="btn-danger" onclick="deleteFood()" style="margin-left:auto">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit training -->
+<div class="modal-overlay" id="edit-train-overlay" onclick="if(event.target.id==='edit-train-overlay')closeEditTrain()">
+  <div class="modal">
+    <div class="modal-title">Modifier la séance</div>
+    <div class="form-row"><div class="form-label">Date</div><input type="date" id="et-date" /></div>
+    <div class="form-row"><div class="form-label">Résumé</div><input type="text" id="et-summary" /></div>
+    <div class="form-row"><div class="form-label">Type</div><input type="text" id="et-type" placeholder="natation | KB | renforcement | course | autre" /></div>
+    <div class="form-row"><div class="form-label">Durée (min)</div><input type="number" id="et-dur" /></div>
+    <div class="form-row">
+      <div class="form-label">Intensité</div>
+      <div class="pills" id="et-int-pills" style="margin-bottom:0">
+        <button class="pill" onclick="selEtInt(this,'faible')">Faible</button>
+        <button class="pill" onclick="selEtInt(this,'modéré')">Modéré</button>
+        <button class="pill" onclick="selEtInt(this,'élevé')">Élevé</button>
+      </div>
+    </div>
+    <div class="form-row"><div class="form-label">Muscles (virgule)</div><input type="text" id="et-muscles" /></div>
+    <div class="form-row"><div class="form-label">Calories brûlées</div><input type="number" id="et-cal" /></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="saveEditTrain()">Enregistrer</button>
+      <button class="btn-ghost" onclick="closeEditTrain()">Annuler</button>
+      <button class="btn-danger" onclick="deleteTrain()" style="margin-left:auto">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const GAS = "https://script.google.com/macros/s/AKfycbwuCojHDmEVVjOPUEmFwEgTbF0pOCy2i2LnvOUSlOPq9-ZTe3SQ2eyGfFRgRS9yM_1bVg/exec";
 
@@ -307,25 +392,75 @@ let trainLog = JSON.parse(localStorage.getItem('track_train') || '[]');
 let templates = JSON.parse(localStorage.getItem('track_tpl') || 'null');
 if (!templates) { templates = DEFAULT_TEMPLATES; localStorage.setItem('track_tpl', JSON.stringify(templates)); }
 
+let viewFoodDay = new Date();
+let viewTrainDay = new Date();
+let editingFoodTs = null;
+let editingTrainTs = null;
+let editingFoodMeal = 'déjeuner';
+let editingTrainIntensity = 'modéré';
+let deletedFood = new Set(JSON.parse(localStorage.getItem('track_deleted_food') || '[]'));
+let deletedTrain = new Set(JSON.parse(localStorage.getItem('track_deleted_train') || '[]'));
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function isToday(d) { return d.toDateString() === new Date().toDateString(); }
+function fmtDay(d) {
+  if (isToday(d)) return "Aujourd'hui";
+  const y = new Date(); y.setDate(y.getDate()-1);
+  if (d.toDateString() === y.toDateString()) return 'Hier';
+  return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+}
+function toLocalDateStr(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function tsForDateInput(val) {
+  if (!val) return new Date().toISOString();
+  const [y,m,d] = val.split('-').map(Number);
+  const now = new Date(); now.setFullYear(y, m-1, d);
+  return now.toISOString();
+}
+function applyDateToTs(val, origTs) {
+  const d = new Date(origTs);
+  const [y,m,day] = val.split('-').map(Number);
+  d.setFullYear(y, m-1, day);
+  return d.toISOString();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+const todayStr = new Date().toISOString().slice(0,10);
+document.getElementById('food-date').value = todayStr;
+document.getElementById('train-date').value = todayStr;
+
 if (apiKey) {
-  document.getElementById('setup-section').style.display='none';
-  document.getElementById('key-saved').style.display='block';
-} else {
-  document.getElementById('key-saved').style.display='none';
+  document.getElementById('setup-section').style.display = 'none';
+  showKeyStatus();
 }
 document.getElementById('date-str').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
 renderTemplates(); renderFoodLog(); renderTrainLog(); updateNutrition(); updateTraining();
 
+// ── API key ───────────────────────────────────────────────────────────────────
+function showKeyStatus() {
+  document.getElementById('key-preview').textContent = apiKey.slice(0,16) + '••••••';
+  document.getElementById('key-status').classList.add('on');
+}
+function showKeyInput() {
+  document.getElementById('key-status').classList.remove('on');
+  document.getElementById('api-input').value = apiKey;
+  document.getElementById('setup-section').style.display = 'block';
+}
+function saveKey() {
+  const k = document.getElementById('api-input').value.trim();
+  if (!k.startsWith('sk-')) { alert('Clé invalide'); return; }
+  apiKey = k; localStorage.setItem('track_api_key', k);
+  document.getElementById('setup-section').style.display = 'none';
+  showKeyStatus();
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
 function todayFood() { const d=new Date().toDateString(); return foodLog.filter(r=>new Date(r.ts).toDateString()===d); }
 function thisWeek() { const n=new Date(),s=new Date(n); s.setDate(n.getDate()-n.getDay()); s.setHours(0,0,0,0); return trainLog.filter(r=>new Date(r.ts)>=s); }
-
-function saveKey() {
-  const k=document.getElementById('api-input').value.trim();
-  if(!k.startsWith('sk-')){alert('Clé invalide');return;}
-  apiKey=k; localStorage.setItem('track_api_key',k);
-  document.getElementById('setup-section').style.display='none';
-  document.getElementById('key-saved').style.display='block';
-}
+function dayFood(day) { const d=day.toDateString(); return foodLog.filter(r=>new Date(r.ts).toDateString()===d); }
+function dayTrain(day) { const d=day.toDateString(); return trainLog.filter(r=>new Date(r.ts).toDateString()===d); }
 
 function nav(id,btn) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
@@ -336,6 +471,13 @@ function nav(id,btn) {
 function selectMeal(el,m) { document.querySelectorAll('#meal-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); currentMeal=m; }
 function selInt(el,v) { document.querySelectorAll('#tpl-int-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); currentIntensity=v; }
 
+// ── Day navigation ────────────────────────────────────────────────────────────
+function prevFoodDay() { viewFoodDay = new Date(viewFoodDay); viewFoodDay.setDate(viewFoodDay.getDate()-1); renderFoodLog(); }
+function nextFoodDay() { if (!isToday(viewFoodDay)) { viewFoodDay = new Date(viewFoodDay); viewFoodDay.setDate(viewFoodDay.getDate()+1); renderFoodLog(); } }
+function prevTrainDay() { viewTrainDay = new Date(viewTrainDay); viewTrainDay.setDate(viewTrainDay.getDate()-1); renderTrainLog(); }
+function nextTrainDay() { if (!isToday(viewTrainDay)) { viewTrainDay = new Date(viewTrainDay); viewTrainDay.setDate(viewTrainDay.getDate()+1); renderTrainLog(); } }
+
+// ── Templates ─────────────────────────────────────────────────────────────────
 function renderTemplates() {
   document.getElementById('templates-grid').innerHTML = templates.map(t=>`
     <div class="tpl-card" onclick="applyTpl('${t.id}')">
@@ -380,7 +522,6 @@ function saveTemplate() {
   localStorage.setItem('track_tpl',JSON.stringify(templates));
   renderTemplates(); closeModal();
 }
-
 function deleteTpl() {
   if(!editingId||!confirm('Supprimer ce template ?')) return;
   templates=templates.filter(t=>t.id!==editingId);
@@ -388,6 +529,7 @@ function deleteTpl() {
   renderTemplates(); closeModal();
 }
 
+// ── Claude API ────────────────────────────────────────────────────────────────
 async function callClaude(prompt) {
   if(!apiKey) throw new Error('Clé API non configurée');
   const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})});
@@ -395,13 +537,14 @@ async function callClaude(prompt) {
   return d.content[0].text;
 }
 
+// ── Nutrition ─────────────────────────────────────────────────────────────────
 async function parseFood() {
   const txt=document.getElementById('food-input').value.trim(); if(!txt) return;
   const btn=document.getElementById('btn-food'),st=document.getElementById('st-food');
   btn.disabled=true; st.textContent='Analyse...';
   try {
     const raw=await callClaude(`Nutritionniste expert. Retourne UNIQUEMENT un JSON valide sans markdown.\nRepas: "${txt}"\n{"summary":"résumé factuel une ligne","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}\nEstimations réalistes. Cohérence: calories ≈ proteines*4 + lipides*9 + glucides*4.`);
-    const j=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,'').trim());
+    const j=JSON.parse(raw.replace(/```json|```/g,'').trim());
     showFoodResult(j); st.textContent='';
   } catch(e){st.textContent='Erreur: '+e.message;}
   btn.disabled=false;
@@ -421,10 +564,13 @@ function showFoodResult(j) {
 
 async function saveFood(j) {
   const st=document.getElementById('st-food'); st.textContent='Enregistrement...';
+  const ts = tsForDateInput(document.getElementById('food-date').value);
+  const entry = {...j, meal:currentMeal, ts};
   try {
-    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'nutrition',data:{...j,meal:currentMeal}})});
-    foodLog.push({...j,meal:currentMeal,ts:new Date().toISOString()});
+    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'nutrition',data:entry})});
+    foodLog.push(entry);
     localStorage.setItem('track_food',JSON.stringify(foodLog));
+    viewFoodDay = new Date(ts);
     updateNutrition(); renderFoodLog();
     document.getElementById('res-food').style.display='none';
     document.getElementById('food-input').value='';
@@ -446,18 +592,73 @@ function updateNutrition() {
 }
 
 function renderFoodLog() {
-  const el=document.getElementById('food-log'), t=todayFood();
-  if(!t.length){el.innerHTML='<div class="empty">Aucun repas enregistré</div>';return;}
-  el.innerHTML=t.map(r=>`<div class="log-item"><div><div class="log-name">${r.meal}</div><div class="log-sub">${r.summary}</div></div><div class="log-right"><div class="log-val">${Math.round(r.calories)}</div><div class="log-sec">${Math.round(r.proteines_g)}g prot</div></div></div>`).join('');
+  const el=document.getElementById('food-log');
+  document.getElementById('food-day-label').textContent = fmtDay(viewFoodDay);
+  document.getElementById('food-day-next').disabled = isToday(viewFoodDay);
+  const items=dayFood(viewFoodDay);
+  if(!items.length){el.innerHTML='<div class="empty">Aucun repas ce jour</div>';return;}
+  el.innerHTML=items.map(r=>`<div class="log-item">
+    <div class="log-item-main">
+      <div class="log-name">${r.meal}</div>
+      <div class="log-sub">${r.summary}</div>
+    </div>
+    <div class="log-right">
+      <div class="log-val">${Math.round(r.calories)}</div>
+      <div class="log-sec">${Math.round(r.proteines_g)}g prot</div>
+    </div>
+    <button class="log-edit-btn" onclick="editFood('${r.ts}')">✎</button>
+  </div>`).join('');
 }
 
+// ── Edit food ─────────────────────────────────────────────────────────────────
+function editFood(ts) {
+  const r=foodLog.find(x=>x.ts===ts); if(!r) return;
+  editingFoodTs=ts; editingFoodMeal=r.meal||'déjeuner';
+  document.getElementById('ef-date').value=toLocalDateStr(ts);
+  document.getElementById('ef-summary').value=r.summary||'';
+  document.getElementById('ef-kcal').value=r.calories||'';
+  document.getElementById('ef-prot').value=r.proteines_g||'';
+  document.getElementById('ef-lip').value=r.lipides_g||'';
+  document.getElementById('ef-gluc').value=r.glucides_g||'';
+  document.querySelectorAll('#ef-meal-pills .pill').forEach(p=>p.classList.toggle('on',p.dataset.meal===editingFoodMeal));
+  document.getElementById('edit-food-overlay').classList.add('on');
+}
+function selEfMeal(el,m) { document.querySelectorAll('#ef-meal-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); editingFoodMeal=m; }
+function saveEditFood() {
+  const dateVal=document.getElementById('ef-date').value;
+  const orig=foodLog.find(r=>r.ts===editingFoodTs);
+  const newTs=dateVal?applyDateToTs(dateVal,editingFoodTs):editingFoodTs;
+  const newEntry={
+    ts:newTs, meal:editingFoodMeal,
+    summary:document.getElementById('ef-summary').value.trim(),
+    calories:parseFloat(document.getElementById('ef-kcal').value)||0,
+    proteines_g:parseFloat(document.getElementById('ef-prot').value)||0,
+    lipides_g:parseFloat(document.getElementById('ef-lip').value)||0,
+    glucides_g:parseFloat(document.getElementById('ef-gluc').value)||0,
+    sucres_g:orig?.sucres_g||0
+  };
+  if(newTs!==editingFoodTs){ deletedFood.add(editingFoodTs); localStorage.setItem('track_deleted_food',JSON.stringify([...deletedFood])); foodLog=foodLog.filter(r=>r.ts!==editingFoodTs); foodLog.push(newEntry); }
+  else { foodLog=foodLog.map(r=>r.ts===editingFoodTs?newEntry:r); }
+  localStorage.setItem('track_food',JSON.stringify(foodLog));
+  fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'nutrition',data:newEntry})});
+  viewFoodDay=new Date(newTs);
+  renderFoodLog(); updateNutrition(); closeEditFood();
+}
+function deleteFood() {
+  deletedFood.add(editingFoodTs); localStorage.setItem('track_deleted_food',JSON.stringify([...deletedFood]));
+  foodLog=foodLog.filter(r=>r.ts!==editingFoodTs); localStorage.setItem('track_food',JSON.stringify(foodLog));
+  renderFoodLog(); updateNutrition(); closeEditFood();
+}
+function closeEditFood() { document.getElementById('edit-food-overlay').classList.remove('on'); }
+
+// ── Training ──────────────────────────────────────────────────────────────────
 async function parseTrain() {
   const txt=document.getElementById('train-input').value.trim(); if(!txt) return;
   const btn=document.getElementById('btn-train'),st=document.getElementById('st-train');
   btn.disabled=true; st.textContent='Analyse...';
   try {
     const raw=await callClaude(`Coach sportif expert. Retourne UNIQUEMENT un JSON valide sans markdown.\nSéance: "${txt}"\n{"summary":"résumé une ligne","type":"natation|KB|renforcement|course|autre","duree_min":0,"intensite":"faible|modéré|élevé","muscles":[],"calories_brulees":0,"notes":""}`);
-    const j=JSON.parse(raw.replace(/\`\`\`json|\`\`\`/g,'').trim());
+    const j=JSON.parse(raw.replace(/```json|```/g,'').trim());
     showTrainResult(j); st.textContent='';
   } catch(e){st.textContent='Erreur: '+e.message;}
   btn.disabled=false;
@@ -478,10 +679,13 @@ function showTrainResult(j) {
 
 async function saveTrain(j) {
   const st=document.getElementById('st-train'); st.textContent='Enregistrement...';
+  const ts=tsForDateInput(document.getElementById('train-date').value);
+  const entry={...j,ts};
   try {
-    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'training',data:j})});
-    trainLog.push({...j,ts:new Date().toISOString()});
+    await fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'training',data:entry})});
+    trainLog.push(entry);
     localStorage.setItem('track_train',JSON.stringify(trainLog));
+    viewTrainDay=new Date(ts);
     updateTraining(); renderTrainLog();
     document.getElementById('res-train').style.display='none';
     document.getElementById('train-input').value='';
@@ -498,153 +702,147 @@ function updateTraining() {
 
 function renderTrainLog() {
   const el=document.getElementById('train-log');
-  if(!trainLog.length){el.innerHTML='<div class="empty">Aucune séance enregistrée</div>';return;}
-  el.innerHTML=trainLog.slice().reverse().slice(0,6).map(r=>`<div class="log-item"><div><div class="log-name">${r.summary}</div><div class="log-sub">${r.intensite} · ${(r.muscles||[]).slice(0,3).join(', ')}</div></div><div class="log-right"><div class="log-val">${r.duree_min}<span style="font-size:13px;color:var(--muted)">min</span></div><div class="log-sec">${Math.round(r.calories_brulees)} kcal</div></div></div>`).join('');
+  document.getElementById('train-day-label').textContent=fmtDay(viewTrainDay);
+  document.getElementById('train-day-next').disabled=isToday(viewTrainDay);
+  const items=dayTrain(viewTrainDay);
+  if(!items.length){el.innerHTML='<div class="empty">Aucune séance ce jour</div>';return;}
+  el.innerHTML=items.map(r=>`<div class="log-item">
+    <div class="log-item-main">
+      <div class="log-name">${r.summary}</div>
+      <div class="log-sub">${r.intensite} · ${(r.muscles||[]).slice(0,3).join(', ')}</div>
+    </div>
+    <div class="log-right">
+      <div class="log-val">${r.duree_min}<span style="font-size:13px;color:var(--muted)">min</span></div>
+      <div class="log-sec">${Math.round(r.calories_brulees)} kcal</div>
+    </div>
+    <button class="log-edit-btn" onclick="editTrain('${r.ts}')">✎</button>
+  </div>`).join('');
 }
 
-let calChart = null;
+// ── Edit training ─────────────────────────────────────────────────────────────
+function editTrain(ts) {
+  const r=trainLog.find(x=>x.ts===ts); if(!r) return;
+  editingTrainTs=ts; editingTrainIntensity=r.intensite||'modéré';
+  document.getElementById('et-date').value=toLocalDateStr(ts);
+  document.getElementById('et-summary').value=r.summary||'';
+  document.getElementById('et-type').value=r.type||'';
+  document.getElementById('et-dur').value=r.duree_min||'';
+  document.getElementById('et-muscles').value=(r.muscles||[]).join(', ');
+  document.getElementById('et-cal').value=r.calories_brulees||'';
+  document.querySelectorAll('#et-int-pills .pill').forEach(p=>p.classList.toggle('on',p.textContent.toLowerCase()===editingTrainIntensity));
+  document.getElementById('edit-train-overlay').classList.add('on');
+}
+function selEtInt(el,v) { document.querySelectorAll('#et-int-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); editingTrainIntensity=v; }
+function saveEditTrain() {
+  const dateVal=document.getElementById('et-date').value;
+  const orig=trainLog.find(r=>r.ts===editingTrainTs);
+  const newTs=dateVal?applyDateToTs(dateVal,editingTrainTs):editingTrainTs;
+  const newEntry={
+    ts:newTs,
+    summary:document.getElementById('et-summary').value.trim(),
+    type:document.getElementById('et-type').value.trim()||'autre',
+    duree_min:parseFloat(document.getElementById('et-dur').value)||0,
+    intensite:editingTrainIntensity,
+    muscles:document.getElementById('et-muscles').value.split(',').map(s=>s.trim()).filter(Boolean),
+    calories_brulees:parseFloat(document.getElementById('et-cal').value)||0,
+    notes:orig?.notes||''
+  };
+  if(newTs!==editingTrainTs){ deletedTrain.add(editingTrainTs); localStorage.setItem('track_deleted_train',JSON.stringify([...deletedTrain])); trainLog=trainLog.filter(r=>r.ts!==editingTrainTs); trainLog.push(newEntry); }
+  else { trainLog=trainLog.map(r=>r.ts===editingTrainTs?newEntry:r); }
+  localStorage.setItem('track_train',JSON.stringify(trainLog));
+  fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({type:'training',data:newEntry})});
+  viewTrainDay=new Date(newTs);
+  renderTrainLog(); updateTraining(); closeEditTrain();
+}
+function deleteTrain() {
+  deletedTrain.add(editingTrainTs); localStorage.setItem('track_deleted_train',JSON.stringify([...deletedTrain]));
+  trainLog=trainLog.filter(r=>r.ts!==editingTrainTs); localStorage.setItem('track_train',JSON.stringify(trainLog));
+  renderTrainLog(); updateTraining(); closeEditTrain();
+}
+function closeEditTrain() { document.getElementById('edit-train-overlay').classList.remove('on'); }
 
+// ── Chart ─────────────────────────────────────────────────────────────────────
+let calChart = null;
 function buildCalChart() {
-  const labels = [], ingested = [], burned = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const ds = d.toDateString();
-    labels.push(i === 0 ? 'Auj.' : d.toLocaleDateString('fr-FR', {weekday:'short'}));
-    const dayFood = foodLog.filter(r => new Date(r.ts).toDateString() === ds);
-    const dayTrain = trainLog.filter(r => new Date(r.ts).toDateString() === ds);
-    ingested.push(Math.round(dayFood.reduce((s,r) => s+(r.calories||0), 0)));
-    burned.push(Math.round(dayTrain.reduce((s,r) => s+(r.calories_brulees||0), 0)));
+  const labels=[],ingested=[],burned=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const ds=d.toDateString();
+    labels.push(i===0?'Auj.':d.toLocaleDateString('fr-FR',{weekday:'short'}));
+    ingested.push(Math.round(foodLog.filter(r=>new Date(r.ts).toDateString()===ds).reduce((s,r)=>s+(r.calories||0),0)));
+    burned.push(Math.round(trainLog.filter(r=>new Date(r.ts).toDateString()===ds).reduce((s,r)=>s+(r.calories_brulees||0),0)));
   }
-  const ctx = document.getElementById('cal-chart');
-  if (!ctx) return;
-  if (calChart) { calChart.destroy(); calChart = null; }
-  calChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Ingérées',
-          data: ingested,
-          borderColor: '#c8f135',
-          borderWidth: 2,
-          pointBackgroundColor: '#c8f135',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          tension: 0.4,
-          fill: false
-        },
-        {
-          label: 'Brûlées',
-          data: burned,
-          borderColor: '#1db87a',
-          borderWidth: 2,
-          borderDash: [5, 4],
-          pointBackgroundColor: '#1db87a',
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          tension: 0.4,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1e1e1e',
-          titleColor: '#888',
-          bodyColor: '#f0f0f0',
-          borderColor: '#2a2a2a',
-          borderWidth: 1,
-          padding: 10,
-          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y} kcal` }
-        },
-        annotation: {
-          annotations: {
-            goal: {
-              type: 'line', yMin: 2200, yMax: 2200,
-              borderColor: 'rgba(200,241,53,0.25)', borderWidth: 1,
-              borderDash: [3, 4]
-            }
-          }
-        }
+  const ctx=document.getElementById('cal-chart'); if(!ctx) return;
+  if(calChart){calChart.destroy();calChart=null;}
+  calChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Ingérées',data:ingested,borderColor:'#c8f135',borderWidth:2,pointBackgroundColor:'#c8f135',pointRadius:4,pointHoverRadius:6,tension:0.4,fill:false},
+      {label:'Brûlées',data:burned,borderColor:'#1db87a',borderWidth:2,borderDash:[5,4],pointBackgroundColor:'#1db87a',pointRadius:4,pointHoverRadius:6,tension:0.4,fill:false}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#1e1e1e',titleColor:'#888',bodyColor:'#f0f0f0',borderColor:'#2a2a2a',borderWidth:1,padding:10,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y} kcal`}},
+        annotation:{annotations:{goal:{type:'line',yMin:2200,yMax:2200,borderColor:'rgba(200,241,53,0.25)',borderWidth:1,borderDash:[3,4]}}}
       },
-      scales: {
-        x: {
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: { color: '#888', font: { size: 12 }, autoSkip: false }
-        },
-        y: {
-          min: 0,
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: {
-            color: '#888', font: { size: 11 },
-            callback: v => v === 0 ? '' : v >= 1000 ? (v/1000).toFixed(1)+'k' : v
-          }
-        }
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#888',font:{size:12},autoSkip:false}},
+        y:{min:0,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#888',font:{size:11},callback:v=>v===0?'':v>=1000?(v/1000).toFixed(1)+'k':v}}
       }
     }
   });
 }
 
-// ── Sync depuis Google Sheets au démarrage ──────────────────────────────────
+// ── Sync from Sheets ──────────────────────────────────────────────────────────
 async function syncFromSheets() {
-  const banner = document.getElementById('sync-banner');
+  const banner=document.getElementById('sync-banner');
   try {
-    const [resFood, resTrain] = await Promise.all([
-      fetch(GAS + '?action=read&type=nutrition&limit=200'),
-      fetch(GAS + '?action=read&type=training&limit=200')
+    const [resFood,resTrain]=await Promise.all([
+      fetch(GAS+'?action=read&type=nutrition&limit=200'),
+      fetch(GAS+'?action=read&type=training&limit=200')
     ]);
-    const dataFood = await resFood.json();
-    const dataTrain = await resTrain.json();
+    const dataFood=await resFood.json();
+    const dataTrain=await resTrain.json();
 
-    if (dataFood.success && Array.isArray(dataFood.data) && dataFood.data.length > 0) {
-      // Mapper timestamp → ts pour compatibilité avec l'app
-      const remote = dataFood.data.map(r => ({
+    if(dataFood.success&&Array.isArray(dataFood.data)&&dataFood.data.length>0){
+      const remote=dataFood.data.map(r=>({
         ...r,
-        ts: r.timestamp || r.ts || new Date().toISOString(),
-        calories: parseFloat(r.calories) || 0,
-        proteines_g: parseFloat(r.proteines_g) || 0,
-        lipides_g: parseFloat(r.lipides_g) || 0,
-        glucides_g: parseFloat(r.glucides_g) || 0,
-        sucres_g: parseFloat(r.sucres_g) || 0,
-        summary: r.description || r.summary || r.meal || ''
+        ts:r.timestamp||r.ts||new Date().toISOString(),
+        calories:parseFloat(r.calories)||0,
+        proteines_g:parseFloat(r.proteines_g)||0,
+        lipides_g:parseFloat(r.lipides_g)||0,
+        glucides_g:parseFloat(r.glucides_g)||0,
+        sucres_g:parseFloat(r.sucres_g)||0,
+        summary:r.description||r.summary||r.meal||''
       }));
-      foodLog = remote;
-      localStorage.setItem('track_food', JSON.stringify(foodLog));
+      foodLog=remote.filter(r=>!deletedFood.has(r.ts));
+      localStorage.setItem('track_food',JSON.stringify(foodLog));
     }
 
-    if (dataTrain.success && Array.isArray(dataTrain.data) && dataTrain.data.length > 0) {
-      const remote = dataTrain.data.map(r => ({
+    if(dataTrain.success&&Array.isArray(dataTrain.data)&&dataTrain.data.length>0){
+      const remote=dataTrain.data.map(r=>({
         ...r,
-        ts: r.timestamp || r.ts || new Date().toISOString(),
-        duree_min: parseFloat(r.duree_min) || 0,
-        calories_brulees: parseFloat(r.calories_brulees) || 0,
-        muscles: r.muscles ? r.muscles.split(',').map(s => s.trim()) : [],
-        summary: r.description || r.summary || r.type || ''
+        ts:r.timestamp||r.ts||new Date().toISOString(),
+        duree_min:parseFloat(r.duree_min)||0,
+        calories_brulees:parseFloat(r.calories_brulees)||0,
+        muscles:r.muscles?r.muscles.split(',').map(s=>s.trim()):[],
+        summary:r.description||r.summary||r.type||''
       }));
-      trainLog = remote;
-      localStorage.setItem('track_train', JSON.stringify(trainLog));
+      trainLog=remote.filter(r=>!deletedTrain.has(r.ts));
+      localStorage.setItem('track_train',JSON.stringify(trainLog));
     }
 
     updateNutrition(); renderFoodLog(); renderTrainLog(); updateTraining();
-    if (banner) { banner.textContent = 'Sync OK'; setTimeout(() => banner.style.display = 'none', 1500); }
+    if(banner){banner.textContent='Sync OK';setTimeout(()=>banner.style.display='none',1500);}
   } catch(e) {
-    if (banner) { banner.textContent = 'Hors-ligne — données locales'; setTimeout(() => banner.style.display = 'none', 2500); }
+    if(banner){banner.textContent='Hors-ligne — données locales';setTimeout(()=>banner.style.display='none',2500);}
   }
 }
 
-// ── PWA Service Worker ───────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
-
-syncFromSheets();
-
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 function updateDashboard() {
   const t=todayFood();
   const kcal=Math.round(t.reduce((s,r)=>s+(r.calories||0),0)), prot=Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
@@ -653,7 +851,7 @@ function updateDashboard() {
   document.getElementById('d-prot').innerHTML=`${prot} <span class="stat-unit">g</span>`;
   document.getElementById('d-sess').textContent=trainLog.length;
   document.getElementById('d-def').innerHTML=`${burned-kcal} <span class="stat-unit">kcal</span>`;
-  if (typeof Chart !== 'undefined') buildCalChart();
+  if(typeof Chart!=='undefined') buildCalChart();
 }
 
 async function getCoach() {
@@ -666,7 +864,13 @@ async function getCoach() {
   } catch(e){txt.textContent='Erreur: '+e.message;}
   btn.disabled=false;
 }
+
+// ── PWA ───────────────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW:',e)); }
+
+syncFromSheets();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 </body>
 </html>
