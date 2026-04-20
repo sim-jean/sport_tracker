@@ -615,8 +615,10 @@ function saveEditFood() {
   renderFoodLog(); updateNutrition(); closeEditFood();
 }
 function deleteFood() {
-  deletedFood.add(editingFoodTs); localStorage.setItem('track_deleted_food',JSON.stringify([...deletedFood]));
-  foodLog=foodLog.filter(r=>r.ts!==editingFoodTs); localStorage.setItem('track_food',JSON.stringify(foodLog));
+  const ts=editingFoodTs;
+  deletedFood.add(ts); localStorage.setItem('track_deleted_food',JSON.stringify([...deletedFood]));
+  foodLog=foodLog.filter(r=>r.ts!==ts); localStorage.setItem('track_food',JSON.stringify(foodLog));
+  fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',type:'nutrition',ts})});
   renderFoodLog(); updateNutrition(); closeEditFood();
 }
 function closeEditFood() { document.getElementById('edit-food-overlay').classList.remove('on'); }
@@ -725,8 +727,10 @@ function saveEditTrain() {
   renderTrainLog(); updateTraining(); closeEditTrain();
 }
 function deleteTrain() {
-  deletedTrain.add(editingTrainTs); localStorage.setItem('track_deleted_train',JSON.stringify([...deletedTrain]));
-  trainLog=trainLog.filter(r=>r.ts!==editingTrainTs); localStorage.setItem('track_train',JSON.stringify(trainLog));
+  const ts=editingTrainTs;
+  deletedTrain.add(ts); localStorage.setItem('track_deleted_train',JSON.stringify([...deletedTrain]));
+  trainLog=trainLog.filter(r=>r.ts!==ts); localStorage.setItem('track_train',JSON.stringify(trainLog));
+  fetch(GAS,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'delete',type:'training',ts})});
   renderTrainLog(); updateTraining(); closeEditTrain();
 }
 function closeEditTrain() { document.getElementById('edit-train-overlay').classList.remove('on'); }
