@@ -258,7 +258,7 @@
     <div class="stat-box"><div class="stat-label">Kcal aujourd'hui</div><div class="stat-val" id="d-kcal">0</div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 2200 objectif</div></div>
     <div class="stat-box"><div class="stat-label">Protéines</div><div class="stat-val" id="d-prot">0 <span class="stat-unit">g</span></div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 150g objectif</div></div>
     <div class="stat-box"><div class="stat-label">Séances loggées</div><div class="stat-val" id="d-sess">0</div></div>
-    <div class="stat-box"><div class="stat-label">Déficit net</div><div class="stat-val" id="d-def">0 <span class="stat-unit">kcal</span></div></div>
+    <div class="stat-box"><div class="stat-label">Kcal restantes</div><div class="stat-val" id="d-def">0 <span class="stat-unit">kcal</span></div></div>
   </div>
   <div class="card">
     <div class="card-title">Calories — 7 derniers jours</div>
@@ -802,7 +802,7 @@ async function syncFromSheets() {
         ts:r.timestamp||r.ts||new Date().toISOString(),
         duree_min:parseFloat(r.duree_min)||0,
         calories_brulees:parseFloat(r.calories_brulees)||0,
-        muscles:r.muscles?r.muscles.split(',').map(s=>s.trim()):[],
+        muscles:Array.isArray(r.muscles)?r.muscles:(r.muscles?r.muscles.split(',').map(s=>s.trim()):[]),
         summary:r.description||r.summary||r.type||''
       }));
       trainLog=remote.filter(r=>!deletedTrain.has(r.ts));
@@ -824,7 +824,7 @@ function updateDashboard() {
   document.getElementById('d-kcal').textContent=kcal;
   document.getElementById('d-prot').innerHTML=`${prot} <span class="stat-unit">g</span>`;
   document.getElementById('d-sess').textContent=trainLog.length;
-  document.getElementById('d-def').innerHTML=`${burned-kcal} <span class="stat-unit">kcal</span>`;
+  document.getElementById('d-def').innerHTML=`${2200-kcal+burned} <span class="stat-unit">kcal</span>`;
   if(typeof Chart!=='undefined') buildCalChart();
 }
 
