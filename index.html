@@ -532,7 +532,7 @@ function deleteTpl() {
 // ── Claude API ────────────────────────────────────────────────────────────────
 async function callClaude(prompt) {
   if(!apiKey) throw new Error('Clé API non configurée');
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,temperature:0,messages:[{role:'user',content:prompt}]})});
   const d=await r.json(); if(d.error) throw new Error(d.error.message);
   return d.content[0].text;
 }
@@ -543,10 +543,10 @@ async function parseFood() {
   const btn=document.getElementById('btn-food'),st=document.getElementById('st-food');
   btn.disabled=true; st.textContent='Analyse...';
   try {
-    const raw=await callClaude(`Nutritionniste expert. Retourne UNIQUEMENT un JSON valide sans markdown.\nRepas: "${txt}"\n{"summary":"résumé factuel une ligne","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}\nEstimations réalistes. Cohérence: calories ≈ proteines*4 + lipides*9 + glucides*4.`);
+    const raw=await callClaude(`Tu es un nutritionniste expert. Analyse ce repas et retourne UNIQUEMENT un objet JSON valide, sans markdown ni texte autour.\n\nRepas: "${txt}"\n\nMéthode obligatoire:\n1. Identifie chaque aliment avec sa quantité (estime si non précisée)\n2. Calcule proteines_g, lipides_g, glucides_g, sucres_g par aliment (base Ciqual/USDA)\n3. Additionne pour obtenir les totaux\n4. Calcule calories = (proteines_g × 4) + (lipides_g × 9) + (glucides_g × 4) — règle absolue, ne jamais déroger\n\nFormat de sortie:\n{"summary":"ingrédients avec grammages estimés","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}`);
     const j=JSON.parse(raw.replace(/```json|```/g,'').trim());
     showFoodResult(j); st.textContent='';
-  } catch(e){st.textContent='Erreur: '+e.message;}
+  } catch(e){st.textContent='Erreur: '+e.message; st.style.color='var(--red)';}
   btn.disabled=false;
 }
 
@@ -660,7 +660,7 @@ async function parseTrain() {
     const raw=await callClaude(`Coach sportif expert. Retourne UNIQUEMENT un JSON valide sans markdown.\nSéance: "${txt}"\n{"summary":"résumé une ligne","type":"natation|KB|renforcement|course|autre","duree_min":0,"intensite":"faible|modéré|élevé","muscles":[],"calories_brulees":0,"notes":""}`);
     const j=JSON.parse(raw.replace(/```json|```/g,'').trim());
     showTrainResult(j); st.textContent='';
-  } catch(e){st.textContent='Erreur: '+e.message;}
+  } catch(e){st.textContent='Erreur: '+e.message; st.style.color='var(--red)';}
   btn.disabled=false;
 }
 
