@@ -983,14 +983,12 @@ function buildCalChart() {
 async function syncFromSheets() {
   const banner=document.getElementById('sync-banner');
   try {
-    const [resFood,resTrain,resWeight]=await Promise.all([
+    const [resFood,resTrain]=await Promise.all([
       fetch(GAS+'?action=read&type=nutrition&limit=200'),
-      fetch(GAS+'?action=read&type=training&limit=200'),
-      fetch(GAS+'?action=read&type=weight&limit=200')
+      fetch(GAS+'?action=read&type=training&limit=200')
     ]);
     const dataFood=await resFood.json();
     const dataTrain=await resTrain.json();
-    const dataWeight=await resWeight.json();
 
     if(dataFood.success&&Array.isArray(dataFood.data)&&dataFood.data.length>0){
       const remote=dataFood.data.map(r=>({
@@ -1020,14 +1018,19 @@ async function syncFromSheets() {
       localStorage.setItem('track_train',JSON.stringify(trainLog));
     }
 
-    if(dataWeight.success&&Array.isArray(dataWeight.data)&&dataWeight.data.length>0){
-      weightLog=dataWeight.data.map(r=>({
-        ts:r.timestamp||r.ts||new Date().toISOString(),
-        kg:parseFloat(r.kg)||0
-      })).filter(r=>r.kg>0);
-      weightLog.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
-      localStorage.setItem('track_weight',JSON.stringify(weightLog));
-    }
+    // Weight sync isolated — GAS may not yet handle this type
+    try {
+      const resWeight=await fetch(GAS+'?action=read&type=weight&limit=200');
+      const dataWeight=await resWeight.json();
+      if(dataWeight.success&&Array.isArray(dataWeight.data)&&dataWeight.data.length>0){
+        weightLog=dataWeight.data.map(r=>({
+          ts:r.timestamp||r.ts||new Date().toISOString(),
+          kg:parseFloat(r.kg)||0
+        })).filter(r=>r.kg>0);
+        weightLog.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+        localStorage.setItem('track_weight',JSON.stringify(weightLog));
+      }
+    } catch(we) { /* GAS not yet updated for weight — local data preserved */ }
 
     updateNutrition(); renderFoodLog(); renderTrainLog(); updateTraining(); updateWeight();
     if(banner){banner.textContent='Sync OK';setTimeout(()=>banner.style.display='none',1500);}
