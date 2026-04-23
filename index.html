@@ -154,6 +154,7 @@
   <button class="nav-btn on" onclick="nav('nutrition',this)">Nutrition</button>
   <button class="nav-btn" onclick="nav('training',this)">Training</button>
   <button class="nav-btn" onclick="nav('dashboard',this)">Bilan</button>
+  <button class="nav-btn" onclick="nav('poids',this)">Poids</button>
 </div>
 
 <div id="sync-banner" style="text-align:center;font-size:12px;color:var(--muted);padding:6px 20px;letter-spacing:1px">Synchronisation...</div>
@@ -197,6 +198,24 @@
       <div class="status" id="st-food"></div>
     </div>
     <div class="result-box" id="res-food"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Présets boissons</div>
+    <div class="templates-grid">
+      <div class="tpl-card" onclick="applyFoodPreset('ipa568')">
+        <div class="tpl-name">Pinte IPA</div>
+        <div class="tpl-meta">568ml · <strong>312 kcal</strong><br>0.5g prot · 28g gluc</div>
+      </div>
+      <div class="tpl-card" onclick="applyFoodPreset('lager568')">
+        <div class="tpl-name">Pinte Lager</div>
+        <div class="tpl-meta">568ml · <strong>255 kcal</strong><br>0.5g prot · 20g gluc</div>
+      </div>
+      <div class="tpl-card" onclick="applyFoodPreset('lager250')">
+        <div class="tpl-name">Demi Lager</div>
+        <div class="tpl-meta">250ml · <strong>113 kcal</strong><br>0.2g prot · 9g gluc</div>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -254,11 +273,23 @@
 
 <!-- DASHBOARD -->
 <div id="s-dashboard" class="screen">
-  <div class="stat-grid">
-    <div class="stat-box"><div class="stat-label">Kcal aujourd'hui</div><div class="stat-val" id="d-kcal">0</div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 2200 objectif</div></div>
-    <div class="stat-box"><div class="stat-label">Protéines</div><div class="stat-val" id="d-prot">0 <span class="stat-unit">g</span></div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 150g objectif</div></div>
-    <div class="stat-box"><div class="stat-label">Séances loggées</div><div class="stat-val" id="d-sess">0</div></div>
-    <div class="stat-box"><div class="stat-label">Kcal restantes</div><div class="stat-val" id="d-def">0 <span class="stat-unit">kcal</span></div></div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Cette semaine</div>
+    <div class="stat-grid" style="margin-bottom:0">
+      <div class="stat-box"><div class="stat-label">Repas loggés</div><div class="stat-val" id="d-w-meals">0</div></div>
+      <div class="stat-box"><div class="stat-label">Séances</div><div class="stat-val" id="d-w-sess">0</div></div>
+      <div class="stat-box"><div class="stat-label">Moy. kcal/j</div><div class="stat-val" id="d-w-avgkcal">0 <span class="stat-unit">kcal</span></div></div>
+      <div class="stat-box"><div class="stat-label">Kcal brûlées</div><div class="stat-val" id="d-w-burned">0 <span class="stat-unit">kcal</span></div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title">Aujourd'hui</div>
+    <div class="stat-grid" style="margin-bottom:0">
+      <div class="stat-box"><div class="stat-label">Kcal consommées</div><div class="stat-val" id="d-kcal">0</div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 2200 objectif</div></div>
+      <div class="stat-box"><div class="stat-label">Protéines</div><div class="stat-val" id="d-prot">0 <span class="stat-unit">g</span></div><div style="font-size:11px;color:var(--hint);margin-top:4px">/ 150g objectif</div></div>
+      <div class="stat-box"><div class="stat-label">Kcal restantes</div><div class="stat-val" id="d-def">0 <span class="stat-unit">kcal</span></div></div>
+      <div class="stat-box"><div class="stat-label">Poids actuel</div><div class="stat-val" id="d-weight">-- <span class="stat-unit">kg</span></div></div>
+    </div>
   </div>
   <div class="card">
     <div class="card-title">Calories — 7 derniers jours</div>
@@ -282,6 +313,41 @@
       <button class="pill" onclick="askCoach('motivation')">💬 Motivation</button>
     </div>
     <div class="status" id="st-coach" style="margin-bottom:8px"></div>
+  </div>
+</div>
+
+<!-- POIDS -->
+<div id="s-poids" class="screen">
+  <div class="rings-wrap" style="justify-content:center">
+    <div style="text-align:center">
+      <div class="ring-kcal" id="weight-current">-- <span>kg</span></div>
+      <div class="ring-label" id="weight-delta"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Enregistrer le poids</div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div class="form-label">Date</div>
+      <input type="date" id="weight-date" />
+    </div>
+    <div class="form-row">
+      <div class="form-label">Poids (kg)</div>
+      <input type="number" id="weight-input" step="0.1" placeholder="Ex: 78.5" />
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveWeight()">Enregistrer</button>
+      <div class="status" id="st-weight"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Tendance — 30 jours</div>
+    <div style="position:relative;width:100%;height:160px">
+      <canvas id="weight-chart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Historique</div>
+    <div id="weight-log"><div class="empty">Aucune pesée enregistrée</div></div>
   </div>
 </div>
 
@@ -388,6 +454,8 @@ let editingFoodMeal = 'déjeuner';
 let editingTrainIntensity = 'modéré';
 let deletedFood = new Set(JSON.parse(localStorage.getItem('track_deleted_food') || '[]'));
 let deletedTrain = new Set(JSON.parse(localStorage.getItem('track_deleted_train') || '[]'));
+let weightLog = JSON.parse(localStorage.getItem('track_weight') || '[]');
+let weightChart = null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function isToday(d) { return d.toDateString() === new Date().toDateString(); }
@@ -418,9 +486,10 @@ function applyDateToTs(val, origTs) {
 const todayStr = new Date().toISOString().slice(0,10);
 document.getElementById('food-date').value = todayStr;
 document.getElementById('train-date').value = todayStr;
+document.getElementById('weight-date').value = todayStr;
 
 document.getElementById('date-str').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
-renderTemplates(); renderFoodLog(); renderTrainLog(); updateNutrition(); updateTraining();
+renderTemplates(); renderFoodLog(); renderTrainLog(); updateNutrition(); updateTraining(); updateWeight();
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 function todayFood() { const d=new Date().toDateString(); return foodLog.filter(r=>new Date(r.ts).toDateString()===d); }
@@ -433,6 +502,7 @@ function nav(id,btn) {
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on'); btn.classList.add('on');
   if(id==='dashboard') updateDashboard();
+  if(id==='poids') updateWeight();
 }
 function selectMeal(el,m) { document.querySelectorAll('#meal-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); currentMeal=m; }
 function selInt(el,v) { document.querySelectorAll('#tpl-int-pills .pill').forEach(p=>p.classList.remove('on')); el.classList.add('on'); currentIntensity=v; }
@@ -496,11 +566,11 @@ function deleteTpl() {
 }
 
 // ── Claude API ────────────────────────────────────────────────────────────────
-async function callClaude(prompt) {
+async function callClaude(prompt, model = 'claude-sonnet-4-6') {
   const r = await fetch('/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
+    body: JSON.stringify({ prompt, model })
   });
   const d = await r.json();
   if (d.error) throw new Error(d.error);
@@ -508,14 +578,62 @@ async function callClaude(prompt) {
 }
 
 // ── Nutrition ─────────────────────────────────────────────────────────────────
+function foodPrompt(txt) {
+  return `Tu es un nutritionniste expert avec une connaissance précise des tables Ciqual (ANSES) et USDA. Analyse ce repas et retourne UNIQUEMENT un objet JSON valide, sans markdown ni texte autour.\n\nRepas: "${txt}"\n\nInstructions strictes:\n1. Pour chaque aliment, identifie la quantité exacte. Si non précisée, utilise une portion réaliste standard (ex: 150g pour une viande, 80g cru pour des pâtes/riz, 1 œuf = 60g).\n2. Utilise les valeurs Ciqual/USDA pour chaque aliment CUIT (pas cru sauf indication contraire).\n3. Calcule les macros pour chaque aliment séparément, puis additionne.\n4. Règle absolue pour les calories: calories = (proteines_g × 4) + (lipides_g × 9) + (glucides_g × 4). Ne jamais utiliser d'autre formule.\n5. Sois conservateur plutôt qu'optimiste : en cas de doute sur la quantité, prends la valeur haute.\n\nExemples de références:\n- Poulet rôti 150g: ~250 kcal, 35g prot, 11g lip, 0g gluc\n- Riz cuit 150g: ~175 kcal, 3.5g prot, 0.5g lip, 38g gluc\n- Œuf entier 60g: ~85 kcal, 7g prot, 6g lip, 0.5g gluc\n\nFormat de sortie (JSON pur, aucun texte avant ou après):\n{"summary":"liste des aliments avec grammages utilisés","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}`;
+}
+
+function drinkPrompt(txt) {
+  return `Tu es un expert en nutrition des boissons et de l'alcool. Retourne UNIQUEMENT un objet JSON valide, sans markdown ni texte autour.\n\nBoisson: "${txt}"\n\nConversions de volume:\n- 1 pinte UK = 568ml, 1 pinte US = 473ml. Utilise UK par défaut sauf indication contraire.\n- 1 demi = 250ml, 1 verre de vin = 150ml, 1 shot = 40ml.\n\nRéférences caloriques:\n- Bière lager/blonde ~4.5% ABV: 45 kcal/100ml, 3.5g glucides/100ml, 0g lipides, 0.5g protéines/100ml.\n- Bière IPA ~6% ABV: 55 kcal/100ml, 5g glucides/100ml, 0g lipides, 0.5g protéines/100ml.\n- Vin rouge/blanc ~12% ABV: 85 kcal/100ml, 0.2g glucides/100ml.\n- Alcool fort ~40% ABV: 220 kcal/100ml, 0g glucides.\n- Règle alcool: 1g alcool = 7 kcal. Lipides boissons: toujours 0.\n\nRègle absolue pour les calories: calories = (proteines_g × 4) + (lipides_g × 9) + (glucides_g × 4) + (alcool_g × 7).\nPour sucres_g: utilise les glucides réels de la boisson.\n\nFormat de sortie (JSON pur, aucun texte avant ou après):\n{"summary":"description avec volume précis","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}`;
+}
+
+function mergeResults(a, b) {
+  return {
+    summary: [a.summary, b.summary].filter(Boolean).join(' + '),
+    calories:    (a.calories||0)    + (b.calories||0),
+    proteines_g: (a.proteines_g||0) + (b.proteines_g||0),
+    lipides_g:   (a.lipides_g||0)   + (b.lipides_g||0),
+    glucides_g:  (a.glucides_g||0)  + (b.glucides_g||0),
+    sucres_g:    (a.sucres_g||0)    + (b.sucres_g||0)
+  };
+}
+
+async function classifyInput(txt) {
+  try {
+    const raw = await callClaude(
+      `Classify the following input as "food", "drink", or "both". Solid foods = food. Beverages and alcohol = drink. A meal that includes both food and drinks = both. Reply with ONE word only: food, drink, or both.\n\nInput: "${txt}"`,
+      'claude-haiku-4-5-20251001'
+    );
+    const cat = raw.trim().toLowerCase().replace(/[^a-z]/g, '');
+    if (cat === 'drink' || cat === 'both') return cat;
+    return 'food';
+  } catch(e) {
+    return 'food';
+  }
+}
+
 async function parseFood() {
   const txt=document.getElementById('food-input').value.trim(); if(!txt) return;
   const btn=document.getElementById('btn-food'),st=document.getElementById('st-food');
-  btn.disabled=true; st.textContent='Analyse...';
+  btn.disabled=true;
   try {
-    const raw=await callClaude(`Tu es un nutritionniste expert avec une connaissance précise des tables Ciqual (ANSES) et USDA. Analyse ce repas et retourne UNIQUEMENT un objet JSON valide, sans markdown ni texte autour.\n\nRepas: "${txt}"\n\nInstructions strictes:\n1. Pour chaque aliment, identifie la quantité exacte. Si non précisée, utilise une portion réaliste standard (ex: 150g pour une viande, 80g cru pour des pâtes/riz, 1 œuf = 60g).\n2. Utilise les valeurs Ciqual/USDA pour chaque aliment CUIT (pas cru sauf indication contraire).\n3. Calcule les macros pour chaque aliment séparément, puis additionne.\n4. Règle absolue pour les calories: calories = (proteines_g × 4) + (lipides_g × 9) + (glucides_g × 4). Ne jamais utiliser d'autre formule.\n5. Sois conservateur plutôt qu'optimiste : en cas de doute sur la quantité, prends la valeur haute.\n\nExemples de références:\n- Poulet rôti 150g: ~250 kcal, 35g prot, 11g lip, 0g gluc\n- Riz cuit 150g: ~175 kcal, 3.5g prot, 0.5g lip, 38g gluc\n- Œuf entier 60g: ~85 kcal, 7g prot, 6g lip, 0.5g gluc\n\nFormat de sortie (JSON pur, aucun texte avant ou après):\n{"summary":"liste des aliments avec grammages utilisés","calories":0,"proteines_g":0,"lipides_g":0,"glucides_g":0,"sucres_g":0}`);
-    const j=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    showFoodResult(j); st.textContent='';
+    st.textContent='Classification...';
+    const cat = await classifyInput(txt);
+    st.textContent='Analyse...';
+    let result;
+    if (cat === 'both') {
+      const [rawF, rawD] = await Promise.all([callClaude(foodPrompt(txt)), callClaude(drinkPrompt(txt))]);
+      result = mergeResults(
+        JSON.parse(rawF.replace(/```json|```/g,'').trim()),
+        JSON.parse(rawD.replace(/```json|```/g,'').trim())
+      );
+    } else if (cat === 'drink') {
+      const raw = await callClaude(drinkPrompt(txt));
+      result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    } else {
+      const raw = await callClaude(foodPrompt(txt));
+      result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    }
+    showFoodResult(result); st.textContent='';
   } catch(e){st.textContent='Erreur: '+e.message; st.style.color='var(--red)';}
   btn.disabled=false;
 }
@@ -559,6 +677,97 @@ function updateNutrition() {
   document.getElementById('suc-disp').innerHTML=`${Math.round(suc)}<small style="font-size:13px;color:var(--muted)">g</small>`;
   document.getElementById('ring-kcal').style.strokeDashoffset=175.9*(1-Math.min(1,kcal/2200));
   document.getElementById('ring-prot').style.strokeDashoffset=238.8*(1-Math.min(1,prot/150));
+}
+
+// ── Food presets ──────────────────────────────────────────────────────────────
+const FOOD_PRESETS = {
+  ipa568:   { summary:'Pinte IPA 568ml',   calories:312, proteines_g:0.5, lipides_g:0, glucides_g:28, sucres_g:28 },
+  lager568: { summary:'Pinte Lager 568ml', calories:255, proteines_g:0.5, lipides_g:0, glucides_g:20, sucres_g:20 },
+  lager250: { summary:'Demi Lager 250ml',  calories:113, proteines_g:0.2, lipides_g:0, glucides_g:9,  sucres_g:9  }
+};
+
+function applyFoodPreset(key) {
+  const p = FOOD_PRESETS[key]; if (!p) return;
+  showFoodResult(p);
+  setTimeout(()=>document.getElementById('res-food').scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+
+// ── Weight ────────────────────────────────────────────────────────────────────
+function saveWeight() {
+  const kg = parseFloat(document.getElementById('weight-input').value);
+  if (!kg || kg < 20 || kg > 300) { alert('Poids invalide'); return; }
+  const ts = tsForDateInput(document.getElementById('weight-date').value);
+  const dayStr = new Date(ts).toDateString();
+  weightLog = weightLog.filter(r => new Date(r.ts).toDateString() !== dayStr);
+  weightLog.push({ ts, kg });
+  weightLog.sort((a,b) => new Date(a.ts) - new Date(b.ts));
+  localStorage.setItem('track_weight', JSON.stringify(weightLog));
+  fetch(GAS, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'weight', data:{ts,kg} }) });
+  const st = document.getElementById('st-weight');
+  st.textContent = 'Enregistré !'; setTimeout(()=>st.textContent='', 2000);
+  document.getElementById('weight-input').value = '';
+  updateWeight();
+}
+
+function latestWeight() {
+  return weightLog.length ? weightLog[weightLog.length - 1].kg : null;
+}
+
+function updateWeight() {
+  const latest = latestWeight();
+  const el = document.getElementById('weight-current');
+  if (el) el.innerHTML = latest ? `${latest} <span>kg</span>` : `-- <span>kg</span>`;
+  const deltaEl = document.getElementById('weight-delta');
+  if (deltaEl && weightLog.length >= 2) {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7);
+    const older = weightLog.filter(r => new Date(r.ts) <= cutoff);
+    if (older.length && latest) {
+      const diff = (latest - older[older.length-1].kg).toFixed(1);
+      deltaEl.textContent = `${diff > 0 ? '+' : ''}${diff} kg vs il y a 7 jours`;
+      deltaEl.style.color = parseFloat(diff) <= 0 ? 'var(--teal)' : 'var(--red)';
+    } else { deltaEl.textContent = ''; }
+  }
+  renderWeightLog();
+  buildWeightChart();
+}
+
+function renderWeightLog() {
+  const el = document.getElementById('weight-log'); if (!el) return;
+  if (!weightLog.length) { el.innerHTML = '<div class="empty">Aucune pesée enregistrée</div>'; return; }
+  el.innerHTML = [...weightLog].reverse().slice(0,20).map(r => `
+    <div class="log-item">
+      <div class="log-item-main"><div class="log-name">${new Date(r.ts).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</div></div>
+      <div class="log-right"><div class="log-val">${r.kg}</div><div class="log-sec">kg</div></div>
+      <button class="log-edit-btn" onclick="deleteWeight('${r.ts}')">✕</button>
+    </div>`).join('');
+}
+
+function deleteWeight(ts) {
+  if (!confirm('Supprimer cette pesée ?')) return;
+  weightLog = weightLog.filter(r => r.ts !== ts);
+  localStorage.setItem('track_weight', JSON.stringify(weightLog));
+  updateWeight();
+}
+
+function buildWeightChart() {
+  const ctx = document.getElementById('weight-chart'); if (!ctx || typeof Chart === 'undefined') return;
+  const labels = [], data = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    labels.push(i % 7 === 0 ? d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '');
+    const entry = weightLog.filter(r => new Date(r.ts).toDateString() === d.toDateString());
+    data.push(entry.length ? entry[entry.length-1].kg : null);
+  }
+  if (weightChart) { weightChart.destroy(); weightChart = null; }
+  weightChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ data, borderColor:'#c8f135', borderWidth:2, pointBackgroundColor:'#c8f135',
+      pointRadius:data.map(v=>v!==null?3:0), tension:0.3, fill:false, spanGaps:true }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{grid:{display:false},ticks:{color:'#888',font:{size:10},maxRotation:0}},
+               y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#888',font:{size:11},callback:v=>`${v}kg`}} }}
+  });
 }
 
 function renderFoodLog() {
@@ -774,12 +983,14 @@ function buildCalChart() {
 async function syncFromSheets() {
   const banner=document.getElementById('sync-banner');
   try {
-    const [resFood,resTrain]=await Promise.all([
+    const [resFood,resTrain,resWeight]=await Promise.all([
       fetch(GAS+'?action=read&type=nutrition&limit=200'),
-      fetch(GAS+'?action=read&type=training&limit=200')
+      fetch(GAS+'?action=read&type=training&limit=200'),
+      fetch(GAS+'?action=read&type=weight&limit=200')
     ]);
     const dataFood=await resFood.json();
     const dataTrain=await resTrain.json();
+    const dataWeight=await resWeight.json();
 
     if(dataFood.success&&Array.isArray(dataFood.data)&&dataFood.data.length>0){
       const remote=dataFood.data.map(r=>({
@@ -809,7 +1020,16 @@ async function syncFromSheets() {
       localStorage.setItem('track_train',JSON.stringify(trainLog));
     }
 
-    updateNutrition(); renderFoodLog(); renderTrainLog(); updateTraining();
+    if(dataWeight.success&&Array.isArray(dataWeight.data)&&dataWeight.data.length>0){
+      weightLog=dataWeight.data.map(r=>({
+        ts:r.timestamp||r.ts||new Date().toISOString(),
+        kg:parseFloat(r.kg)||0
+      })).filter(r=>r.kg>0);
+      weightLog.sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+      localStorage.setItem('track_weight',JSON.stringify(weightLog));
+    }
+
+    updateNutrition(); renderFoodLog(); renderTrainLog(); updateTraining(); updateWeight();
     if(banner){banner.textContent='Sync OK';setTimeout(()=>banner.style.display='none',1500);}
   } catch(e) {
     if(banner){banner.textContent='Hors-ligne — données locales';setTimeout(()=>banner.style.display='none',2500);}
@@ -818,13 +1038,36 @@ async function syncFromSheets() {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 function updateDashboard() {
-  const t=todayFood();
-  const kcal=Math.round(t.reduce((s,r)=>s+(r.calories||0),0)), prot=Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
-  const burned=Math.round(trainLog.reduce((s,r)=>s+(r.calories_brulees||0),0));
-  document.getElementById('d-kcal').textContent=kcal;
-  document.getElementById('d-prot').innerHTML=`${prot} <span class="stat-unit">g</span>`;
-  document.getElementById('d-sess').textContent=trainLog.length;
-  document.getElementById('d-def').innerHTML=`${2200-kcal+burned} <span class="stat-unit">kcal</span>`;
+  const today = new Date();
+  const t = todayFood();
+  const todayTrains = dayTrain(today);
+  const kcal = Math.round(t.reduce((s,r)=>s+(r.calories||0),0));
+  const prot = Math.round(t.reduce((s,r)=>s+(r.proteines_g||0),0));
+  const burned = Math.round(todayTrains.reduce((s,r)=>s+(r.calories_brulees||0),0));
+
+  document.getElementById('d-kcal').textContent = kcal;
+  document.getElementById('d-prot').innerHTML = `${prot} <span class="stat-unit">g</span>`;
+  document.getElementById('d-def').innerHTML = `${2200-kcal+burned} <span class="stat-unit">kcal</span>`;
+
+  const wEl = document.getElementById('d-weight');
+  if (wEl) { const w = latestWeight(); wEl.innerHTML = w ? `${w} <span class="stat-unit">kg</span>` : `-- <span class="stat-unit">kg</span>`; }
+
+  // Weekly stats (Mon–today)
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - (today.getDay()||7) + 1);
+  weekStart.setHours(0,0,0,0);
+  const weekFood  = foodLog.filter(r => new Date(r.ts) >= weekStart);
+  const weekTrain = trainLog.filter(r => new Date(r.ts) >= weekStart);
+  const daysSoFar = Math.max(1, Math.ceil((today - weekStart) / 86400000));
+  const avgKcal   = Math.round(weekFood.reduce((s,r)=>s+(r.calories||0),0) / daysSoFar);
+  const weekBurned = Math.round(weekTrain.reduce((s,r)=>s+(r.calories_brulees||0),0));
+
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
+  set('d-w-meals',   weekFood.length);
+  set('d-w-sess',    weekTrain.length);
+  set('d-w-avgkcal', `${avgKcal} <span class="stat-unit">kcal</span>`);
+  set('d-w-burned',  `${weekBurned} <span class="stat-unit">kcal</span>`);
+
   if(typeof Chart!=='undefined') buildCalChart();
 }
 
